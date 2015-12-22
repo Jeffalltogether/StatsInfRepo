@@ -106,14 +106,25 @@ with the central limit theorem.
 One can tell the distribution of Means gathered from our 40 experiments  is
 approximately normal by an informal approach of plotting a normal distribution 
 over the histogram.  In this case the y-axis must be normalized to 1 prior to 
-mapping the normal distribution to this figure.  From the following figure, 
-we can tell that the histogram approximates a normal distribution.
+mapping the normal distribution to this figure.
+
+From the following figure, we can tell that the histogram approximates a normal
+distribution.
 
 ```{r fig.width=3.5, fig.height=2.5, echo=FALSE}
-stdev = sd(DFmean[,2])
+Mstdev <- sd(DFmean[,2])
+
 ggplot(DFmean, aes(x=Mean)) + 
         geom_histogram(aes(y=..density..),fill = "skyblue", color = "black", size = 0.2, binwidth=0.1) +
-        stat_function(fun = dnorm, args = list(mean = 5, sd = stdev))
+        stat_function(fun = dnorm, args = list(mean = 5, sd = Mstdev))
 ```
 
-The same principle could be applied to the distribution of variances.
+The same principle applied to the distribution of variances.  
+
+```{r fig.width=3.5, fig.height=2.5, echo=FALSE}
+Vstdev <- sd(DFvar[,2])
+
+ggplot(DFvar, aes(x=Variance)) + 
+        geom_histogram(aes(y=..density..),fill = "darkorchid2", color = "black", size = 0.2, binwidth=1) +
+        stat_function(fun = dnorm, args = list(mean = 25, sd = Vstdev))
+```
