@@ -1,8 +1,8 @@
+---
+output: word_document
+---
 #Investigation of Distributions  
 ### Author: Jeffrey Thatcher  
-[Directions][1]
-
-[1]:https://class.coursera.org/statinference-035/human_grading/view/courses/975168/assessments/4/submissions  
 
 ##Overview  
 The goal of this report is to use the central limit theorem to show that an 
@@ -21,6 +21,8 @@ function has the following appearance:
 ```{r warning=F, fig.width=3.5, fig.height=2.5, echo=FALSE}
 library(ggplot2)
 library(stats)
+source("multiplot.R")
+
 set.seed(777)
 lambda = 0.2
 
@@ -60,7 +62,6 @@ colnames(DFvar) <- c("Experiment","Variance")
 ```
 
 ##Sample Mean versus Theoretical Mean  
-Sample Mean versus Theoretical Mean: Include figures with titles. In the figures, highlight the means you are comparing. Include text that explains the figures and what is shown on them, and provides appropriate numbers.
 
 The EDF function is f(x) = lambda{e}^{-lambda*x} for x >= 0. Lambda is the rate 
 parameter. The theoretical mean of the EDF distribution is 1/lambda and in 
@@ -81,6 +82,7 @@ The value `r colMeans(DFmean[2])` is very close to the theoretical mean
 with the central limit theorem.
 
 ##Sample Variance versus Theoretical Variance  
+
 We expect the same tendency of the experimentally calculated mean to be true for
 the experimentally calculated variance of the EDF.  The theoretical Variance of 
 the EDF can be calculated as the square of the standard deviation, and the standard 
@@ -103,28 +105,79 @@ The value `r colMeans(DFvar[2])` is very close to the theoretical variance
 with the central limit theorem.
 
 ##Distribution  
+
 One can tell the distribution of Means gathered from our 40 experiments  is
 approximately normal by an informal approach of plotting a normal distribution 
 over the histogram.  In this case the y-axis must be normalized to 1 prior to 
-mapping the normal distribution to this figure.
+mapping the normal distribution to this figure. The same principle applied to 
+the distribution of variances. 
 
-From the following figure, we can tell that the histogram approximates a normal
-distribution.
+From the following figure, we can tell that the two histograms approximate a 
+normal distributions.  
 
-```{r fig.width=3.5, fig.height=2.5, echo=FALSE}
+```{r warning=F, fig.width=6, fig.height=2.5, echo=FALSE}
 Mstdev <- sd(DFmean[,2])
-
-ggplot(DFmean, aes(x=Mean)) + 
-        geom_histogram(aes(y=..density..),fill = "skyblue", color = "black", size = 0.2, binwidth=0.1) +
-        stat_function(fun = dnorm, args = list(mean = 5, sd = Mstdev))
-```
-
-The same principle applied to the distribution of variances.  
-
-```{r fig.width=3.5, fig.height=2.5, echo=FALSE}
 Vstdev <- sd(DFvar[,2])
 
-ggplot(DFvar, aes(x=Variance)) + 
-        geom_histogram(aes(y=..density..),fill = "darkorchid2", color = "black", size = 0.2, binwidth=1) +
+p1 <- ggplot(DFmean, aes(x=Mean)) + 
+        geom_histogram(aes(y=..density..),fill = "skyblue", color = "black",
+                       size = 0.2, binwidth=0.1) +
+        stat_function(fun = dnorm, args = list(mean = 5, sd = Mstdev))
+
+p2 <- ggplot(DFvar, aes(x=Variance)) + 
+        geom_histogram(aes(y=..density..),fill = "darkorchid2", color = "black",
+                       size = 0.2, binwidth=1) +
         stat_function(fun = dnorm, args = list(mean = 25, sd = Vstdev))
+
+multiplot(p1, p2, cols = 2)
+```
+  
+# Appendix: R-code  
+```{r eval=FALSE}
+library(ggplot2)
+library(stats)
+source("multiplot.R")
+
+set.seed(777)
+lambda = 0.2
+
+#Plot of the exponential density function with line at the mean
+x = seq(0,15,0.01)
+p1 = qplot(x, dexp(x,lambda), geom="line", ylab="f(x)") + 
+        geom_vline(xintercept = 5, color="green")
+p1
+
+DF <- as.data.frame(matrix(1,1000,40))
+DFexp <- sapply(DF,rexp, rate=0.2)
+
+#Mean of each experiment
+DFmean <- as.data.frame(cbind(seq(1,40,1),colMeans(DFexp)))
+colnames(DFmean) <- c("Experiment","Mean")
+
+#Variance of each experiemnt
+DFvar <- apply(DFexp,2,var)
+DFvar <- as.data.frame(cbind(seq(1,40,1), DFvar))
+colnames(DFvar) <- c("Experiment","Variance")
+
+ggplot(DFmean, aes(x=Mean)) + 
+        geom_histogram(fill = "skyblue", color = "black", size = 0.2, binwidth=0.1)
+
+ggplot(DFvar, aes(x=Variance)) + 
+        geom_histogram(fill = "darkorchid2", color = "black", size = 0.2, binwidth=1)
+
+Mstdev <- sd(DFmean[,2])
+Vstdev <- sd(DFvar[,2])
+
+#Comparison to normal distribution
+p1 <- ggplot(DFmean, aes(x=Mean)) + 
+        geom_histogram(aes(y=..density..),fill = "skyblue", color = "black",
+                       size = 0.2, binwidth=0.1) +
+        stat_function(fun = dnorm, args = list(mean = 5, sd = Mstdev))
+
+p2 <- ggplot(DFvar, aes(x=Variance)) + 
+        geom_histogram(aes(y=..density..),fill = "darkorchid2", color = "black",
+                       size = 0.2, binwidth=1) +
+        stat_function(fun = dnorm, args = list(mean = 25, sd = Vstdev))
+
+multiplot(p1, p2, cols = 2)
 ```
